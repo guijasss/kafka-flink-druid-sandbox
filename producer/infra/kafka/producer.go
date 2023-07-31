@@ -6,17 +6,11 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
-type Producer struct {
-	ConfigMap *kafka.ConfigMap
-}
-
-func MakeProducer(configMap *kafka.ConfigMap) {
-	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "localhost:9092"})
+func MakeProducer(configMap *kafka.ConfigMap) *kafka.Producer {
+	p, err := kafka.NewProducer(configMap)
 	if err != nil {
 		panic(err)
 	}
-
-	defer p.Close()
 
 	// Delivery report handler for produced messages
 	go func() {
@@ -32,15 +26,28 @@ func MakeProducer(configMap *kafka.ConfigMap) {
 		}
 	}()
 
-	// Produce messages to topic (asynchronously)
-	topic := "hello-world"
-	for _, word := range []string{"Welcome", "to", "the", "Confluent", "Kafka", "Golang", "client"} {
-		p.Produce(&kafka.Message{
-			TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
-			Value:          []byte(word),
-		}, nil)
+	return p
+}
+
+func SendMessage(producer *kafka.Producer, topic string, value []byte) error {
+	// Produce a message to the specified topic
+	deliveryChan := make(chan kafka.Event)
+	err := producer.Produce(&kafka.Message{
+		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
+		Value:          value,
+	}, deliveryChan)
+
+	if err != nil {
+		return err
 	}
 
-	// Wait for message deliveries before shutting down
-	p.Flush(15 * 1000)
+	// Wait for the delivery report
+	e := <-deliveryChan
+	m := e.(*kafka.Message)
+
+	if m.TopicPartition.Error != nil {
+		return m.TopicPartition.Error
+	}
+
+	return nil
 }
