@@ -1,1 +1,0 @@
-https://github.com/codeedu/esquenta-imersao-6-golang-kafka/blob/main/infra/kafka/consumer.go
