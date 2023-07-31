@@ -17,7 +17,6 @@ type Sale struct {
 	Product       string    `json:"product"`
 	OriginalPrice float32   `json:"originalPrice"`
 	DiscountRate  int       `json:"discountRate"`
-	Price         float32   `json:"price"`
 	Timestamp     time.Time `json:"timestamp"`
 }
 
@@ -27,18 +26,13 @@ func (sale Sale) MakeSale() Sale {
 	return Sale{
 		Id:            uuid.NewString(),
 		Salesman:      utils.ReadRandomLineFromTxt("/home/caf/dev/kafka-flink-druiddb-sandbox/producer/data/salesman.txt"),
-		Customer:      namegenerator.NewNameGenerator(128).Generate(),
+		Customer:      namegenerator.NewNameGenerator(rand.Int63()).Generate(),
 		Brand:         csvSalesData.Brand,
 		Product:       csvSalesData.Product,
 		OriginalPrice: csvSalesData.OriginalPrice,
 		DiscountRate:  int(csvSalesData.DiscountRate),
-		Price:         calculatePrice(sale.OriginalPrice, sale.DiscountRate),
 		Timestamp:     getRandomTimestamp(),
 	}
-}
-
-func calculatePrice(originalPrice float32, discountRate int) float32 {
-	return originalPrice - originalPrice*float32(discountRate/int(100))
 }
 
 func getRandomTimestamp() time.Time {
