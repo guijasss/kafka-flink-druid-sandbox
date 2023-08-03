@@ -1,5 +1,7 @@
 package org.xqdl
 
+import utils.Json.{deserialize, serialize}
+
 import org.apache.flink.api.common.eventtime.WatermarkStrategy
 import org.apache.flink.api.common.serialization.SimpleStringSchema
 import org.apache.flink.connector.kafka.sink.{KafkaRecordSerializationSchema, KafkaSink}
@@ -8,6 +10,8 @@ import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsIni
 import org.apache.flink.streaming.api.scala._
 
 //https://medium.com/@erkansirin/apache-flink-and-kafka-simple-example-with-scala-97f0b338ee36
+//https://nightlies.apache.org/flink/flink-docs-master/docs/connectors/datastream/kafka/
+//https://nightlies.apache.org/flink/flink-docs-master/docs/dev/dataset/transformations/#map
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -30,9 +34,12 @@ object Main {
       .setRecordSerializer(serializer)
       .build()
 
-    val lines = env.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "Kafka Source")
-    lines.print()
-    lines.sinkTo(kafkaSink)
+    val rawData = env.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "Kafka Source")
+
+    rawData.map(json => deserialize(json)).map(sale => serialize(sale))
+
+    rawData.print()
+    rawData.sinkTo(kafkaSink)
     env.execute("Read from Kafka")
   }
 }
