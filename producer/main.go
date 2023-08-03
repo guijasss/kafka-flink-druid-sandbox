@@ -20,7 +20,7 @@ func main() {
 	producer := kafka.MakeProducer(&ckafka.ConfigMap{"bootstrap.servers": "localhost:9092"})
 
 	// Send a sample message
-	topic := "sales-ingestion"
+	topic := "ingestion-sales"
 	err = kafka.SendMessage(producer, topic, jsonData)
 	if err != nil {
 		fmt.Println("Error sending message:", err)
