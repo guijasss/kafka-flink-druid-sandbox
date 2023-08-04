@@ -1,7 +1,7 @@
 package org.xqdl
 package utils
 
-import protocols.RawSale
+import protocols.{ProcessedSale, RawSale}
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
@@ -16,7 +16,7 @@ object Json {
     objectMapper.readValue(jsonString, classOf[RawSale])
   }
 
-  def serialize(sale: RawSale): String = {
+  def serialize(sale: ProcessedSale): String = {
     val objectMapper = new ObjectMapper()
     objectMapper.registerModule(DefaultScalaModule)
 
